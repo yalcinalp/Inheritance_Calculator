@@ -16,11 +16,8 @@ def pg1(olen_birey, lst, rakam):
 			partner_hayatta_mı = []
 			
 			for insan in lst:
-				
 				if insan[0] == partner:
-					
 					if "not dead" in insan:
-
 						partner_hayatta_mı.append(insan[0])
 
 					elif "DEPARTED" in insan:
