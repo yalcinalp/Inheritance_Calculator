@@ -1,762 +1,18 @@
 
-
-def inheritance(lst):
-
-	might_have_duplicate = inheritance_help(lst)
-
-	stack = []
-
-	just_isimler = []
-
-	for kisi in might_have_duplicate:
-
-		if stack == []:
-
-			stack.append(kisi)
-
-			just_isimler.append(kisi[0])
-
-		else:
-
-			if kisi[0] in just_isimler:
-
-				for i in range(len(stack)):
-
-					if stack[i][0] == kisi[0]:
-
-						lst_hal = [stack[i][0], stack[i][1]]
-
-						lst_hal[1] = stack[i][1] + kisi[1]
-
-						stack[i] = (stack[i][0], lst_hal[1])
-
-			else:
-
-				stack.append(kisi)
-
-				just_isimler.append(kisi[0])
-	
-	return stack	
-
-
-
-def inheritance_help(liste):
-
-	aile = helper_aile_olusturucu(liste)
-
-	for person in aile:
-
-		if person[-2] == "DECEASED":
-
-			# KOD BURAYA GELDİĞİ ZAMAN ARTIK MİRASÇININ ÜZERİNDE OLMUŞ OLUYORUZ, BU NOKTADAN SONRA ONUN ÜZERİNDE İŞLEMLER YAPILACAK
-
-			mirascının_ismi = person[0]
-
-			miras_para = float(person[-1])
-
-			mirascının_annesi = person[1]	# mirascının_annesi = [] Bos list olabilir
-
-			mirascının_babası = person[2]
-
-			mirascının_partneri_lst = []
-
-			mirascının_partneri = person[3]
-
-			for aranan in aile:
-
-				if aranan[0] == mirascının_partneri:
-
-					mirascının_partneri_lst = aranan
-
-			mirascının_annesi_lst = []
-
-			mirascının_babası_lst = []
-
-			mirascının_baba_tarafından_dedesi_lst = []
-
-			mirascının_baba_tarafından_babaannesi_lst = []
-
-			mirascının_anne_tarafından_dedesi_lst = []
-
-			mirascının_anne_tarafından_anaannesi_lst = []
-
-			for sahıs in aile:
-
-				if sahıs[0] == mirascının_annesi:
-
-					mirascının_annesi_lst.append(sahıs)
-
-					mom = sahıs[1]
-
-					dad = sahıs[2]
-
-					for sahsiyet in aile:
-
-						if sahsiyet[0] == mom:
-
-							#burada anaanneyi bulduk artık
-
-							mirascının_anne_tarafından_anaannesi_lst.append(sahsiyet)
-
-						if sahsiyet[0] == dad:
-						
-							mirascının_anne_tarafından_dedesi_lst.append(sahsiyet)
-
-				if sahıs[0] == mirascının_babası:
-
-					mirascının_babası_lst.append(sahıs)
-
-					mom_2 = sahıs[1]
-
-					dad_2 = sahıs[2]
-
-					for sahsi_kisilik in aile:
-
-						if sahsi_kisilik[0] == mom_2:
-
-							#burada anaanneyi bulduk artık
-
-							mirascının_baba_tarafından_babaannesi_lst.append(sahsi_kisilik)
-
-						if sahsi_kisilik[0] == dad_2:
-						
-							mirascının_baba_tarafından_dedesi_lst.append(sahsi_kisilik)
-
-			# artık gradparent listelerden artık dede ve babaanneyi çekmek kaldı hemen aşağıda yapalım
-
-
-			#---------------------------DİKKAT ET------------------------------
-
-
-			birinci_dereceden_ust_soy = mirascının_annesi_lst + mirascının_babası_lst + mirascının_baba_tarafından_dedesi_lst + mirascının_baba_tarafından_babaannesi_lst +mirascının_anne_tarafından_dedesi_lst +mirascının_anne_tarafından_anaannesi_lst
-
-			ust_soy_canlılık_bilgileri = []
-
-			for item in birinci_dereceden_ust_soy:
-
-				ust_soy_canlılık_bilgileri.append(item[-1])
-
-			###print("bakmak istedigim yer: alp ", ust_soy_canlılık_bilgileri)
-
-			varsa_canlı_alt_soy_listesi = canlı_alt_soy_var_mi(mirascının_ismi, aile)
-
-
-			#BURADAN İTİBAREN KODUMUZ CUNKU PG1 CAGIRMAKTA...
-
-			if varsa_canlı_alt_soy_listesi == []:
-
-				#PG2 YA DA PG3 OLACAK, ON CONSTRUCTİON
-
-				if birinci_dereceden_ust_soy == []:
-
-					# ust soy yok, yani bilgi yok ya da ust soy olu
-
-					if "not dead" in mirascının_partneri_lst:
-
-						return [(mirascının_partneri_lst[0], float(miras_para))]
-
-					else: 
-
-					#bu else durmunu handle etmemiz lazım # KİMSEYE PARANIN GİTMEDİĞİ DURUM
-					
-						return []	
-				
-				elif "not dead" not in ust_soy_canlılık_bilgileri:
-
-					anne_ya_da_baba_alt_soy_var_mı = []
-
-					olmus_annenin_alt_soyu_var_mı = canlı_alt_soy_var_mi(mirascının_annesi, aile)
-
-					olmus_babanın_alt_soyu_var_mı = canlı_alt_soy_var_mi(mirascının_babası, aile)
-
-					anne_ya_da_baba_alt_soy_var_mı += olmus_babanın_alt_soyu_var_mı
-
-					anne_ya_da_baba_alt_soy_var_mı += olmus_annenin_alt_soyu_var_mı
-
-					if anne_ya_da_baba_alt_soy_var_mı != []:
-
-						#PG2 UYgulanacak
-
-						#ANNE BABA HER İKİSİ DE ÖLÜ
-
-						# EŞİNİN CANLILIĞINI KONTORL ETMEN LAZIM
-
-						if mirascının_partneri_lst != []:
-
-							if mirascının_partneri_lst[-1] == "not dead":
-
-								anne_tarafından_alacaklılar = []
-
-								baba_tarafından_alacaklılar = []
-							
-								if olmus_annenin_alt_soyu_var_mı != []:
-
-									anne_tarafından_alacaklılar = olmus_annenin_alt_soyu_var_mı
-
-								if olmus_babanın_alt_soyu_var_mı != []:
-
-									baba_tarafından_alacaklılar = olmus_babanın_alt_soyu_var_mı
-
-								if anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar != []:
-								
-									buranın_sonucu = []
-
-									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/4)
-
-									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/4)
-
-									buranın_sonucu += [(mirascının_partneri, miras_para/2)]
-
-									return buranın_sonucu			
-
-								elif anne_tarafından_alacaklılar == [] and baba_tarafından_alacaklılar != []:
-
-									buranın_sonucu = []
-
-									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/2)
-
-									buranın_sonucu += [(mirascının_partneri, miras_para/2)]
-
-									return buranın_sonucu
-
-								elif anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar == []:
-
-									buranın_sonucu = []
-
-									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/2)
-
-									buranın_sonucu += [(mirascının_partneri, miras_para/2)]
-
-									return buranın_sonucu
-							
-						if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
-
-							anne_tarafından_alacaklılar = []
-
-							baba_tarafından_alacaklılar = []
-						
-							if olmus_annenin_alt_soyu_var_mı != []:
-
-								anne_tarafından_alacaklılar = olmus_annenin_alt_soyu_var_mı
-
-							if olmus_babanın_alt_soyu_var_mı != []:
-
-								baba_tarafından_alacaklılar = olmus_babanın_alt_soyu_var_mı
-
-							if anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar != []:
-							
-								buranın_sonucu = []
-
-								buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/2)
-
-								buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/2)
-
-								return buranın_sonucu			
-
-							elif anne_tarafından_alacaklılar == [] and baba_tarafından_alacaklılar != []:
-
-								buranın_sonucu = []
-
-								buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para)
-
-								return buranın_sonucu
-
-							elif anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar == []:
-
-								buranın_sonucu = []
-
-								buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para)
-
-								return buranın_sonucu
-
-					elif anne_ya_da_baba_alt_soy_var_mı == []:
-	
-						#PG3 uygulanacak	 
-				
-						#PG3 kontorlu yapmamız lazım PG3 BURADA BAŞLIYOR
-
-						birlestirilmis_grand_parents = mirascının_baba_tarafından_dedesi_lst + mirascının_baba_tarafından_babaannesi_lst + mirascının_anne_tarafından_dedesi_lst +mirascının_anne_tarafından_anaannesi_lst
-
-						partner_hayatta_mı = []
-
-						for insan in aile:
-
-							if insan[0] == mirascının_partneri:
-
-								if "not dead" in insan:
-
-									partner_hayatta_mı.append(insan[0])
-
-								elif "DEPARTED" in insan:
-
-									pass
-
-						if partner_hayatta_mı != []:
-						
-							#partner hayattadır
-
-							partner_hayatta_mı[0] = (mirascının_partneri, miras_para*(3/4))
-
-							miras_para = (1/4)*miras_para
-
-						elif partner_hayatta_mı == []:
-						
-							pass
-
-						canlı_grandparents = []
-						
-						cansız_fakat_alt_soylu_grandparents = []
-
-						for grandp in birlestirilmis_grand_parents:
-
-							if "not dead" in grandp:
-
-								canlı_grandparents.append(grandp[0]) 
-
-								#grandp yi mi yoksa grandp[0] yu mu koysam emin değilim buraya dikkat 
-
-							elif "DEPARTED" in grandp:
-							
-								varsa_grandparentın_canlı_alt_soy_listesi = canlı_alt_soy_var_mi(grandp[0], aile)
-
-								if varsa_grandparentın_canlı_alt_soy_listesi != []:
-
-									cansız_fakat_alt_soylu_grandparents.append(grandp[0])
-
-								elif varsa_grandparentın_canlı_alt_soy_listesi == []:
-								
-									pass
-
-						if cansız_fakat_alt_soylu_grandparents != []:			
-
-							# example canli_grandparents = [["halil", "ece", ...]
-
-							birlesmis_mirasci_granparents = canlı_grandparents + cansız_fakat_alt_soylu_grandparents
-
-							granparentsda_temporary_mirası_paylasacak_kisi_sayısı = len(birlesmis_mirasci_granparents)
-
-							granparents_ıcın_kisi_bası_dusen_pay = miras_para/granparentsda_temporary_mirası_paylasacak_kisi_sayısı
-
-							temporary_result_grandp = []
-
-							for miras_adayı in canlı_grandparents:
-
-								temp_val = (miras_adayı, granparents_ıcın_kisi_bası_dusen_pay)
-
-								temporary_result_grandp.append(temp_val)
-
-							empty_lst = []
-							
-							for olmus_miras_adayı in cansız_fakat_alt_soylu_grandparents:
-
-								#empty_lst.append(partnere_para_vermeyen_pg1(olmus_miras_adayı, aile, granparents_ıcın_kisi_bası_dusen_pay))
-
-								empty_lst = empty_lst + partnere_para_vermeyen_pg1(olmus_miras_adayı, aile, granparents_ıcın_kisi_bası_dusen_pay)
-
-							burda_result = empty_lst + temporary_result_grandp
-
-							if partner_hayatta_mı != []:
-
-								artık_son_result = partner_hayatta_mı + burda_result
-
-								return artık_son_result
-
-							elif partner_hayatta_mı == []:
-							
-								return burda_result
-
-								# PARTNER HAYATTA MI KISIMI ACABA HERHANGI BİR ALİASİNG PROBLEM E KURBAN GİDER Mİ, BU DURUMU GÖZ ÖNÜNDE BULUNDUR
-
-						elif cansız_fakat_alt_soylu_grandparents == []:
-
-							if "not dead" in mirascının_partneri_lst:
-
-								return [(mirascının_partneri_lst[0], float(miras_para))]
-
-							else: 
-
-							# bu else durmunu handle etmemiz lazım # KİMSEYE PARANIN GİTMEDİĞİ DURUM
-							
-								return []								
-				
-				else:
-
-					#"not dead" in ust_soy_canlılık_bilgileri: durumunda buraya girer
-
-					#  MİRASCININ HERHANGİ BİR ÜST SOY VAR İSE:
-
-					# Hangisi oldugua karar vermemiz lazım pg 2 mi yoksa pg3 mu diye
-
-					anne_baba_birlesmis_lst = mirascının_annesi_lst + mirascının_babası_lst
-
-					anne_baba_canlılıgı = []
-
-					for birey in anne_baba_birlesmis_lst:
-
-						if birey == []:
-
-							pass
-
-						elif birey != []:
-						
-							anne_baba_canlılıgı.append(birey[-1])
-
-					if "not dead" in anne_baba_canlılıgı:
-
-						# anne ve babaya PG2 uygulamamız lazım...
-
-						mommy = anne_baba_birlesmis_lst[0] # bunlar su an liste
-
-						daddy = anne_baba_birlesmis_lst[1]
-
-
-						if mommy[-1] == "not dead" and daddy[-1] == "not dead":
-
-							#her ikisi de ölü değilse
-
-							if mirascının_partneri_lst != []:  
-
-								if mirascının_partneri_lst[-1] == "not dead":
-
-									return[(mirascının_partneri_lst[0], miras_para/2),(mommy[0], miras_para/4), (daddy[0], miras_para/4)]
-
-							if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
-
-								return [(mommy[0],miras_para/2),(daddy[0],miras_para/2)]
-
-						elif mommy[-1] == "DEPARTED" and daddy[-1] == "not dead":
-
-							#anne olu baba yasıyorsa
-
-							varsa_anne_canlı_alt_soy_listesi = canlı_alt_soy_var_mi(mommy[0], aile)
-
-							if varsa_anne_canlı_alt_soy_listesi != []:
-
-								#ON CONSTRUCTİON
-
-								if mirascının_partneri_lst != []:  
-
-									if mirascının_partneri_lst[-1] == "not dead":
-
-										anne_altındaki_paydaslar_ve_alacakları = partnere_para_vermeyen_pg1(mommy[0], aile, miras_para/4)
-
-										sonuc_of_here = [(daddy[0], miras_para/4)] + [(mirascının_partneri_lst[0], miras_para/2)] + anne_altındaki_paydaslar_ve_alacakları
-
-										return sonuc_of_here
-
-
-								#anne_altındaki_paydaslar_ve_alacakları = partnere_para_vermeyen_pg1(mommy[0], aile, miras_para/4)
-
-								if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
-
-									anne_altındaki_paydaslar_ve_alacakları = partnere_para_vermeyen_pg1(mommy[0], aile, miras_para/2)
-
-									sonuc_of_here = [(daddy[0], miras_para/2)] + anne_altındaki_paydaslar_ve_alacakları
-
-									return sonuc_of_here
-
-
-							elif varsa_anne_canlı_alt_soy_listesi == []:
-
-								if mirascının_partneri_lst != []:  
-
-									if mirascının_partneri_lst[-1] == "not dead":
-							
-										return[(mirascının_partneri_lst[0], miras_para/2),(daddy[0], miras_para/2)]
-
-								if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
-								
-									return[(daddy[0], miras_para)]	 	
-
-
-						elif mommy[-1] == "not dead" and daddy[-1] == "DEPARTED":
-							
-							#baba ölü anne yaşıyorsa
-
-							varsa_baba_canlı_alt_soy_listesi = canlı_alt_soy_var_mi(daddy[0], aile)
-
-							if varsa_baba_canlı_alt_soy_listesi != []:
-
-								#ON CONSTRUCTİON
-
-								if mirascının_partneri_lst != []:
-
-									if mirascının_partneri_lst[-1] == "not dead":
-
-										baba_altındaki_paydaslar_ve_alacakları = partnere_para_vermeyen_pg1(daddy[0], aile, miras_para/4)
-
-										sonuc_of_here = [(mommy[0],miras_para/4)] + [(mirascının_partneri_lst[0], miras_para/2)] + baba_altındaki_paydaslar_ve_alacakları
-
-										return sonuc_of_here
-
-
-								#anne_altındaki_paydaslar_ve_alacakları = partnere_para_vermeyen_pg1(mommy[0], aile, miras_para/4)
-
-								if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
-
-									baba_altındaki_paydaslar_ve_alacakları = partnere_para_vermeyen_pg1(daddy[0], aile, miras_para/2)
-
-									sonuc_of_here = [(mommy[0],miras_para/2)] + baba_altındaki_paydaslar_ve_alacakları
-
-									return sonuc_of_here
-
-
-							elif varsa_baba_canlı_alt_soy_listesi == []:
-
-								if mirascının_partneri_lst != []:
-
-									if mirascının_partneri_lst[-1] == "not dead": 
-
-										return[(mirascının_partneri_lst[0], miras_para/2),(mommy[0], miras_para/2)]
-
-								if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":	
-
-									return[(mommy[0], miras_para)]
-
-
-
-					elif "not dead" not in anne_baba_canlılıgı:
-
-						#İŞTE BURAYA BİR KONTROL LAZIM. ANNE BABA ÖLÜ FAKAT ALT SOYLARI VAR İSE PG2 UYGULAMAMIZ LAZIM
-
-						anne_ya_da_baba_alt_soy_var_mı = []
-
-						olmus_annenin_alt_soyu_var_mı = canlı_alt_soy_var_mi(mirascının_annesi, aile)
-
-						olmus_babanın_alt_soyu_var_mı = canlı_alt_soy_var_mi(mirascının_babası, aile)
-
-						anne_ya_da_baba_alt_soy_var_mı += olmus_babanın_alt_soyu_var_mı
-
-						anne_ya_da_baba_alt_soy_var_mı += olmus_annenin_alt_soyu_var_mı
-
-						if anne_ya_da_baba_alt_soy_var_mı != []:
-
-							#PG2 UYgulanacak
-
-							#ANNE BABA HER İKİSİ DE ÖLÜ
-
-							# EŞİNİN CANLILIĞINI KONTORL ETMEN LAZIM
-
-							if mirascının_partneri_lst != []:
-
-								if mirascının_partneri_lst[-1] == "not dead":
-
-									anne_tarafından_alacaklılar = []
-
-									baba_tarafından_alacaklılar = []
-								
-									if olmus_annenin_alt_soyu_var_mı != []:
-
-										anne_tarafından_alacaklılar = olmus_annenin_alt_soyu_var_mı
-
-									if olmus_babanın_alt_soyu_var_mı != []:
-
-										baba_tarafından_alacaklılar = olmus_babanın_alt_soyu_var_mı
-
-									if anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar != []:
-									
-										buranın_sonucu = []
-
-										buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/4)
-
-										buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/4)
-
-										buranın_sonucu += [(mirascının_partneri, miras_para/2)]
-
-										return buranın_sonucu			
-
-									elif anne_tarafından_alacaklılar == [] and baba_tarafından_alacaklılar != []:
-
-										buranın_sonucu = []
-
-										buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/2)
-
-										buranın_sonucu += [(mirascının_partneri, miras_para/2)]
-
-										return buranın_sonucu
-
-									elif anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar == []:
-
-										buranın_sonucu = []
-
-										buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/2)
-
-										buranın_sonucu += [(mirascının_partneri, miras_para/2)]
-
-										return buranın_sonucu
-								
-							if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
-
-								anne_tarafından_alacaklılar = []
-
-								baba_tarafından_alacaklılar = []
-							
-								if olmus_annenin_alt_soyu_var_mı != []:
-
-									anne_tarafından_alacaklılar = olmus_annenin_alt_soyu_var_mı
-
-								if olmus_babanın_alt_soyu_var_mı != []:
-
-									baba_tarafından_alacaklılar = olmus_babanın_alt_soyu_var_mı
-
-								if anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar != []:
-								
-									buranın_sonucu = []
-
-									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/2)
-
-									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/2)
-
-									return buranın_sonucu			
-
-								elif anne_tarafından_alacaklılar == [] and baba_tarafından_alacaklılar != []:
-
-									buranın_sonucu = []
-
-									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para)
-
-									return buranın_sonucu
-
-								elif anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar == []:
-
-									buranın_sonucu = []
-
-									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para)
-
-									return buranın_sonucu	
-
-
-						elif anne_ya_da_baba_alt_soy_var_mı == []:
-							
-							#PG3 uygulanacak	 
-					
-							#PG3 kontorlu yapmamız lazım PG3 BURADA BAŞLIYOR
-
-							birlestirilmis_grand_parents = mirascının_baba_tarafından_dedesi_lst + mirascının_baba_tarafından_babaannesi_lst + mirascının_anne_tarafından_dedesi_lst +mirascının_anne_tarafından_anaannesi_lst
-
-							partner_hayatta_mı = []
-
-							for insan in aile:
-
-								if insan[0] == mirascının_partneri:
-
-									if "not dead" in insan:
-
-										partner_hayatta_mı.append(insan[0])
-
-									elif "DEPARTED" in insan:
-
-										pass
-
-							if partner_hayatta_mı != []:
-							
-								#partner hayattadır
-
-								partner_hayatta_mı[0] = (mirascının_partneri, miras_para*(3/4))
-
-								miras_para = (1/4)*miras_para
-
-							elif partner_hayatta_mı == []:
-							
-								pass
-
-							canlı_grandparents = []
-							
-							cansız_fakat_alt_soylu_grandparents = []
-
-							for grandp in birlestirilmis_grand_parents:
-
-								if "not dead" in grandp:
-
-									canlı_grandparents.append(grandp[0]) #grandp yi mi yoksa grandp[0] yu mu koysam emin değilim buraya çok dikkat 
-
-								elif "DEPARTED" in grandp:
-								
-									varsa_grandparentın_canlı_alt_soy_listesi = canlı_alt_soy_var_mi(grandp[0], aile)
-
-									if varsa_grandparentın_canlı_alt_soy_listesi != []:
-
-										cansız_fakat_alt_soylu_grandparents.append(grandp[0])
-
-									elif varsa_grandparentın_canlı_alt_soy_listesi == []:
-									
-										pass
-
-							#canli_grandparents = [["halil", "ece", ...]
-							
-							#cansız_fakat_alt_soylu_grandparents = []
-
-							birlesmis_mirasci_granparents = canlı_grandparents + cansız_fakat_alt_soylu_grandparents
-
-							granparentsda_temporary_mirası_paylasacak_kisi_sayısı = len(birlesmis_mirasci_granparents)
-
-							granparents_ıcın_kisi_bası_dusen_pay = miras_para/granparentsda_temporary_mirası_paylasacak_kisi_sayısı
-
-							temporary_result_grandp = []
-
-							for miras_adayı in canlı_grandparents:
-
-								temp_val = (miras_adayı, granparents_ıcın_kisi_bası_dusen_pay)
-
-								temporary_result_grandp.append(temp_val)
-
-							empty_lst = []
-							
-							for olmus_miras_adayı in cansız_fakat_alt_soylu_grandparents:
-
-								#empty_lst.append(partnere_para_vermeyen_pg1(olmus_miras_adayı, aile, granparents_ıcın_kisi_bası_dusen_pay))
-
-								empty_lst = empty_lst + partnere_para_vermeyen_pg1(olmus_miras_adayı, aile, granparents_ıcın_kisi_bası_dusen_pay)
-
-							burda_result = empty_lst + temporary_result_grandp
-
-							if partner_hayatta_mı != []:
-
-								artık_son_result = partner_hayatta_mı + burda_result
-
-								return artık_son_result
-
-							elif partner_hayatta_mı == []:
-							
-								return burda_result
-
-								#PARTNER HAYATTA MI KISIMI ACABA HERHANGI BİR ALİASİNG PROBLEM E KURBAN GİDER Mİ, BU DURUMU GÖZ ÖNÜNDE BULUNDUR 	
-
-			elif varsa_canlı_alt_soy_listesi != []:
-
-				#ON CONSTRUCTİON
-				# PG1 i çağıralım
-
-				sonuc = pg1(person[0], aile, miras_para)
-
-				return sonuc
-
-
-
 def pg1(olen_birey, lst, rakam):
 
-	#iki şey kontrol ediyoruz birincisi alt soy var mı ikincisi ise hayatta mı ve ona göre para paylaşımı yapıyoruz
-
-	#hayatta ise zaten sıkıntı yok, hayatta değil ise o zaman alt soylarında hayatta biri var mı diye bakıcaz
-
 	for kisi in lst:
-
 		if kisi[0] == olen_birey:
 
 			mirascının_ismi = kisi[0]
 
-			#miras_para = kisi[-1]
-
 			if type(kisi[-1]) == float or type(kisi[-1]) == int:
-
 				miras_para = kisi[-1]
 
 			else:
-			
 				miras_para = rakam 
 
-			partner = kisi[3] # direct string
-
+			partner = kisi[3] 				#direct string
 			partner_hayatta_mı = []
 			
 			for insan in lst:
@@ -776,7 +32,6 @@ def pg1(olen_birey, lst, rakam):
 				#partner hayattadır
 
 				partner_hayatta_mı[0] = (partner,miras_para/4)
-
 				miras_para = (3/4)*miras_para
 
 
@@ -784,20 +39,15 @@ def pg1(olen_birey, lst, rakam):
 
 				pass	
 
-			cocuklar = kisi[4] #["enes, halil, mert"]
-
+			cocuklar = kisi[4]
 			canli_cocuks = []
-
 			cansız_fakat_alt_soylu_cocuks = []
 
 			for cocuk in cocuklar:
-
 				for birey in lst:
 
 					if cocuk == birey[0]:
-
 						if "not dead" in birey:
-
 							canli_cocuks.append(cocuk)
 
 						elif "DEPARTED" in birey:
@@ -812,11 +62,6 @@ def pg1(olen_birey, lst, rakam):
 								
 									pass
 
-			#canli_cocuks = ["halil"]
-
-			#cansız_fakat_alt_soylu_cocuks = ["mert"]
-
-
 			birlesmis_birinci_derece_mirasci_cocuklar = canli_cocuks + cansız_fakat_alt_soylu_cocuks
 
 
@@ -824,8 +69,6 @@ def pg1(olen_birey, lst, rakam):
 
 
 			kisi_bası_dusen_pay = miras_para/temporary_mirası_paylasacak_kisi_sayısı
-
-			#kisi_bası_dusen_pay es durumuna gore modifiye edilmek zorunda... henuz eksik
 
 			temporary_result_1 = []
 
@@ -860,17 +103,11 @@ def pg1(olen_birey, lst, rakam):
 
 def partnere_para_vermeyen_pg1(olen_birey, lst, rakam):  
 
-	#iki şey kontrol ediyoruz birincisi alt soy var mı ikincisi ise hayatta mı ve ona göre para paylaşımı yapıyoruz
-
-	#hayatta ise zaten sıkıntı yok, hayatta değil ise o zaman alt soylarında hayatta biri var mı diye bakıcaz
-
 	for kisi in lst:
 
 		if kisi[0] == olen_birey:
 
 			mirascının_ismi = kisi[0]
-
-			#miras_para = kisi[-1]
 
 			if type(kisi[-1]) == float or type(kisi[-1]) == int:
 
@@ -880,7 +117,7 @@ def partnere_para_vermeyen_pg1(olen_birey, lst, rakam):
 			
 				miras_para = rakam 
 
-			cocuklar = kisi[4] #["enes, halil, mert"]
+			cocuklar = kisi[4]
 
 			canli_cocuks = []
 
@@ -917,8 +154,6 @@ def partnere_para_vermeyen_pg1(olen_birey, lst, rakam):
 
 			kisi_bası_dusen_pay = miras_para/temporary_mirası_paylasacak_kisi_sayısı
 
-			#kisi_bası_dusen_pay es durumuna gore modifiye edilmek zorunda... henuz eksik
-
 			temporary_result_1 = []
 
 			for mirascı_birey in canli_cocuks:
@@ -938,17 +173,7 @@ def partnere_para_vermeyen_pg1(olen_birey, lst, rakam):
 			return result
 
 
-
-
 def canlı_alt_soy_var_mi(olen_kisi, aile):
-
-		# PG1 var mı kontrol etmek için helper fonksiyonu
-
-		# True ya da False doner yoksa acaba canlı alt soyun listesini donsek
-
-		# olen_kisi mirası payualsılacak olan aile ise aile dusun
-
-		# recursive bir sey olmalı ? 
 
 		if olen_kisi == []:
 
@@ -1017,7 +242,6 @@ def canlı_alt_soy_var_mi(olen_kisi, aile):
 							return(canlı_alt_soy)					
 
 
-
 def helper_aile_olusturucu(lst):
 
 	x = []
@@ -1044,9 +268,6 @@ def helper_aile_olusturucu(lst):
 				aile_olacak_list.append([childeren, veri[1], veri[2]])
 
 				birilerinin_cocukları.append(childeren)
-
-
-	#birilerinin_cocukları = ['kaan', 'giray', 'enes', 'halil', 'mert', 'faika', 'ismet', 'lutfi']
 
 
 	for data in x:
@@ -1099,8 +320,6 @@ def helper_aile_olusturucu(lst):
 			for human in aile_olacak_list:
 
 				isimler_listesi.append(human[0])
-
-			#########print(isimler_listesi)	
 
 			if [kisi_1, [], [], kisi_2] not in aile_olacak_list and kisi_1 not in isimler_listesi:
 
@@ -1225,3 +444,670 @@ def helper_aile_olusturucu(lst):
 			pass
 			
 	return(aile_olacak_list)
+
+
+def inheritance(lst):
+
+	might_have_duplicate = inheritance_help(lst)
+	stack = []
+	just_isimler = []
+
+	for kisi in might_have_duplicate:
+
+		if stack == []:
+			stack.append(kisi)
+			just_isimler.append(kisi[0])
+
+		else:
+
+			if kisi[0] in just_isimler:
+				for i in range(len(stack)):
+					if stack[i][0] == kisi[0]:
+
+						lst_hal = [stack[i][0], stack[i][1]]
+						lst_hal[1] = stack[i][1] + kisi[1]
+						stack[i] = (stack[i][0], lst_hal[1])
+
+			else:
+
+				stack.append(kisi)
+				just_isimler.append(kisi[0])
+	
+	return stack	
+
+
+
+def inheritance_help(liste):
+
+	aile = helper_aile_olusturucu(liste)
+
+	for person in aile:
+
+		if person[-2] == "DECEASED":
+
+			# KOD BURAYA GELDİĞİ ZAMAN ARTIK MİRASÇININ ÜZERİNDE OLMUŞ OLUYORUZ, BU NOKTADAN SONRA ONUN ÜZERİNDE İŞLEMLER YAPILACAK
+
+			mirascının_ismi = person[0]
+			miras_para = float(person[-1])
+
+			mirascının_annesi = person[1]	
+			# mirascının_annesi = [] Bos list olabilir
+
+			mirascının_babası = person[2]
+			mirascının_partneri_lst = []
+			mirascının_partneri = person[3]
+
+			for aranan in aile:
+				if aranan[0] == mirascının_partneri:
+					mirascının_partneri_lst = aranan
+
+			mirascının_annesi_lst = []
+			mirascının_babası_lst = []
+
+			mirascının_baba_tarafından_dedesi_lst = []
+			mirascının_baba_tarafından_babaannesi_lst = []
+
+			mirascının_anne_tarafından_dedesi_lst = []
+			mirascının_anne_tarafından_anaannesi_lst = []
+
+			for sahıs in aile:
+
+				if sahıs[0] == mirascının_annesi:
+					mirascının_annesi_lst.append(sahıs)
+
+					mom = sahıs[1]
+					dad = sahıs[2]
+
+					for sahsiyet in aile:
+
+						if sahsiyet[0] == mom:
+
+							#burada anaanneyi bulduk artık
+
+							mirascının_anne_tarafından_anaannesi_lst.append(sahsiyet)
+
+						if sahsiyet[0] == dad:
+						
+							mirascının_anne_tarafından_dedesi_lst.append(sahsiyet)
+
+				if sahıs[0] == mirascının_babası:
+
+					mirascının_babası_lst.append(sahıs)
+
+					mom_2 = sahıs[1]
+					dad_2 = sahıs[2]
+
+					for sahsi_kisilik in aile:
+
+						if sahsi_kisilik[0] == mom_2:
+
+							#burada anaanneyi bulduk artık
+
+							mirascının_baba_tarafından_babaannesi_lst.append(sahsi_kisilik)
+
+						if sahsi_kisilik[0] == dad_2:
+						
+							mirascının_baba_tarafından_dedesi_lst.append(sahsi_kisilik)
+
+			# artık gradparent listelerden artık dede ve babaanneyi çekmek kaldı hemen aşağıda yapalım
+
+
+			#---------------------------DİKKAT ET------------------------------
+
+
+			birinci_dereceden_ust_soy = mirascının_annesi_lst + mirascının_babası_lst + mirascının_baba_tarafından_dedesi_lst + mirascının_baba_tarafından_babaannesi_lst +mirascının_anne_tarafından_dedesi_lst +mirascının_anne_tarafından_anaannesi_lst
+
+			ust_soy_canlılık_bilgileri = []
+
+			for item in birinci_dereceden_ust_soy:
+
+				ust_soy_canlılık_bilgileri.append(item[-1])
+
+			varsa_canlı_alt_soy_listesi = canlı_alt_soy_var_mi(mirascının_ismi, aile)
+
+			#BURADAN İTİBAREN KODUMUZ CUNKU PG1 CAGIRMAKTA...
+
+			if varsa_canlı_alt_soy_listesi == []:
+
+				#PG2 YA DA PG3 OLACAK, ON CONSTRUCTİON
+
+				if birinci_dereceden_ust_soy == []:
+
+					# ust soy yok, yani bilgi yok ya da ust soy olu
+
+					if "not dead" in mirascının_partneri_lst:
+
+						return [(mirascının_partneri_lst[0], float(miras_para))]
+
+					else: 
+
+					#bu else durmunu handle etmemiz lazım # KİMSEYE PARANIN GİTMEDİĞİ DURUM
+					
+						return []	
+				
+				elif "not dead" not in ust_soy_canlılık_bilgileri:
+
+					anne_ya_da_baba_alt_soy_var_mı = []
+
+					olmus_annenin_alt_soyu_var_mı = canlı_alt_soy_var_mi(mirascının_annesi, aile)
+
+					olmus_babanın_alt_soyu_var_mı = canlı_alt_soy_var_mi(mirascının_babası, aile)
+
+					
+					anne_ya_da_baba_alt_soy_var_mı += olmus_babanın_alt_soyu_var_mı
+
+					anne_ya_da_baba_alt_soy_var_mı += olmus_annenin_alt_soyu_var_mı
+
+					if anne_ya_da_baba_alt_soy_var_mı != []:
+
+						#PG2 UYgulanacak
+
+						#ANNE BABA HER İKİSİ DE ÖLÜ
+
+						# EŞİNİN CANLILIĞINI KONTORL ETMEN LAZIM
+
+						if mirascının_partneri_lst != []:
+
+							if mirascının_partneri_lst[-1] == "not dead":
+
+								anne_tarafından_alacaklılar = []
+
+								baba_tarafından_alacaklılar = []
+							
+								if olmus_annenin_alt_soyu_var_mı != []:
+
+									anne_tarafından_alacaklılar = olmus_annenin_alt_soyu_var_mı
+
+								if olmus_babanın_alt_soyu_var_mı != []:
+
+									baba_tarafından_alacaklılar = olmus_babanın_alt_soyu_var_mı
+
+								if anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar != []:
+								
+									buranın_sonucu = []
+
+									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/4)
+
+									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/4)
+
+									buranın_sonucu += [(mirascının_partneri, miras_para/2)]
+
+									return buranın_sonucu			
+
+								elif anne_tarafından_alacaklılar == [] and baba_tarafından_alacaklılar != []:
+
+									buranın_sonucu = []
+
+									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/2)
+
+									buranın_sonucu += [(mirascının_partneri, miras_para/2)]
+
+									return buranın_sonucu
+
+								elif anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar == []:
+
+									buranın_sonucu = []
+
+									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/2)
+
+									buranın_sonucu += [(mirascının_partneri, miras_para/2)]
+
+									return buranın_sonucu
+							
+						if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
+
+							anne_tarafından_alacaklılar = []
+
+							baba_tarafından_alacaklılar = []
+						
+							if olmus_annenin_alt_soyu_var_mı != []:
+
+								anne_tarafından_alacaklılar = olmus_annenin_alt_soyu_var_mı
+
+							if olmus_babanın_alt_soyu_var_mı != []:
+
+								baba_tarafından_alacaklılar = olmus_babanın_alt_soyu_var_mı
+
+							if anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar != []:
+							
+								buranın_sonucu = []
+
+								buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/2)
+
+								buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/2)
+
+								return buranın_sonucu			
+
+							elif anne_tarafından_alacaklılar == [] and baba_tarafından_alacaklılar != []:
+
+								buranın_sonucu = []
+
+								buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para)
+
+								return buranın_sonucu
+
+							elif anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar == []:
+
+								buranın_sonucu = []
+
+								buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para)
+
+								return buranın_sonucu
+
+					elif anne_ya_da_baba_alt_soy_var_mı == []:
+	
+						#PG3 uygulanacak	 
+				
+						birlestirilmis_grand_parents = mirascının_baba_tarafından_dedesi_lst + mirascının_baba_tarafından_babaannesi_lst + mirascının_anne_tarafından_dedesi_lst +mirascının_anne_tarafından_anaannesi_lst
+
+						partner_hayatta_mı = []
+
+						for insan in aile:
+
+							if insan[0] == mirascının_partneri:
+
+								if "not dead" in insan:
+
+									partner_hayatta_mı.append(insan[0])
+
+								elif "DEPARTED" in insan:
+
+									pass
+
+						if partner_hayatta_mı != []:
+						
+							#partner hayattadır
+
+							partner_hayatta_mı[0] = (mirascının_partneri, miras_para*(3/4))
+
+							miras_para = (1/4)*miras_para
+
+						elif partner_hayatta_mı == []:
+						
+							pass
+
+						canlı_grandparents = []
+						
+						cansız_fakat_alt_soylu_grandparents = []
+
+						for grandp in birlestirilmis_grand_parents:
+
+							if "not dead" in grandp:
+
+								canlı_grandparents.append(grandp[0]) 
+
+								#grandp yi mi yoksa grandp[0] yu mu koysam emin değilim buraya dikkat 
+
+							elif "DEPARTED" in grandp:
+							
+								varsa_grandparentın_canlı_alt_soy_listesi = canlı_alt_soy_var_mi(grandp[0], aile)
+
+								if varsa_grandparentın_canlı_alt_soy_listesi != []:
+
+									cansız_fakat_alt_soylu_grandparents.append(grandp[0])
+
+								elif varsa_grandparentın_canlı_alt_soy_listesi == []:
+								
+									pass
+
+						if cansız_fakat_alt_soylu_grandparents != []:			
+
+							birlesmis_mirasci_granparents = canlı_grandparents + cansız_fakat_alt_soylu_grandparents
+
+							granparentsda_temporary_mirası_paylasacak_kisi_sayısı = len(birlesmis_mirasci_granparents)
+
+							granparents_ıcın_kisi_bası_dusen_pay = miras_para/granparentsda_temporary_mirası_paylasacak_kisi_sayısı
+
+							temporary_result_grandp = []
+
+							for miras_adayı in canlı_grandparents:
+
+								temp_val = (miras_adayı, granparents_ıcın_kisi_bası_dusen_pay)
+
+								temporary_result_grandp.append(temp_val)
+
+							empty_lst = []
+							
+							for olmus_miras_adayı in cansız_fakat_alt_soylu_grandparents:
+
+								empty_lst = empty_lst + partnere_para_vermeyen_pg1(olmus_miras_adayı, aile, granparents_ıcın_kisi_bası_dusen_pay)
+
+							burda_result = empty_lst + temporary_result_grandp
+
+							if partner_hayatta_mı != []:
+
+								artık_son_result = partner_hayatta_mı + burda_result
+
+								return artık_son_result
+
+							elif partner_hayatta_mı == []:
+							
+								return burda_result
+
+						elif cansız_fakat_alt_soylu_grandparents == []:
+
+							if "not dead" in mirascının_partneri_lst:
+
+								return [(mirascının_partneri_lst[0], float(miras_para))]
+
+							else: 
+
+								return []								
+				
+				else:
+
+					anne_baba_birlesmis_lst = mirascının_annesi_lst + mirascının_babası_lst
+
+					anne_baba_canlılıgı = []
+
+					for birey in anne_baba_birlesmis_lst:
+
+						if birey == []:
+
+							pass
+
+						elif birey != []:
+						
+							anne_baba_canlılıgı.append(birey[-1])
+
+					if "not dead" in anne_baba_canlılıgı:
+
+						# anne ve babaya PG2 uygulamamız lazım...
+
+						mommy = anne_baba_birlesmis_lst[0] # bunlar su an liste
+
+						daddy = anne_baba_birlesmis_lst[1]
+
+
+						if mommy[-1] == "not dead" and daddy[-1] == "not dead":
+
+							#her ikisi de ölü değilse
+
+							if mirascının_partneri_lst != []:  
+
+								if mirascının_partneri_lst[-1] == "not dead":
+
+									return[(mirascının_partneri_lst[0], miras_para/2),(mommy[0], miras_para/4), (daddy[0], miras_para/4)]
+
+							if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
+
+								return [(mommy[0],miras_para/2),(daddy[0],miras_para/2)]
+
+						elif mommy[-1] == "DEPARTED" and daddy[-1] == "not dead":
+
+							#anne olu baba yasıyorsa
+
+							varsa_anne_canlı_alt_soy_listesi = canlı_alt_soy_var_mi(mommy[0], aile)
+
+							if varsa_anne_canlı_alt_soy_listesi != []:
+
+								if mirascının_partneri_lst != []:  
+
+									if mirascının_partneri_lst[-1] == "not dead":
+
+										anne_altındaki_paydaslar_ve_alacakları = partnere_para_vermeyen_pg1(mommy[0], aile, miras_para/4)
+
+										sonuc_of_here = [(daddy[0], miras_para/4)] + [(mirascının_partneri_lst[0], miras_para/2)] + anne_altındaki_paydaslar_ve_alacakları
+
+										return sonuc_of_here
+
+								if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
+
+									anne_altındaki_paydaslar_ve_alacakları = partnere_para_vermeyen_pg1(mommy[0], aile, miras_para/2)
+
+									sonuc_of_here = [(daddy[0], miras_para/2)] + anne_altındaki_paydaslar_ve_alacakları
+
+									return sonuc_of_here
+
+
+							elif varsa_anne_canlı_alt_soy_listesi == []:
+
+								if mirascının_partneri_lst != []:  
+
+									if mirascının_partneri_lst[-1] == "not dead":
+							
+										return[(mirascının_partneri_lst[0], miras_para/2),(daddy[0], miras_para/2)]
+
+								if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
+								
+									return[(daddy[0], miras_para)]	 	
+
+
+						elif mommy[-1] == "not dead" and daddy[-1] == "DEPARTED":
+							
+							#baba ölü anne yaşıyorsa
+
+							varsa_baba_canlı_alt_soy_listesi = canlı_alt_soy_var_mi(daddy[0], aile)
+
+							if varsa_baba_canlı_alt_soy_listesi != []:
+
+								if mirascının_partneri_lst != []:
+
+									if mirascının_partneri_lst[-1] == "not dead":
+
+										baba_altındaki_paydaslar_ve_alacakları = partnere_para_vermeyen_pg1(daddy[0], aile, miras_para/4)
+
+										sonuc_of_here = [(mommy[0],miras_para/4)] + [(mirascının_partneri_lst[0], miras_para/2)] + baba_altındaki_paydaslar_ve_alacakları
+
+										return sonuc_of_here
+
+								if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
+
+									baba_altındaki_paydaslar_ve_alacakları = partnere_para_vermeyen_pg1(daddy[0], aile, miras_para/2)
+
+									sonuc_of_here = [(mommy[0],miras_para/2)] + baba_altındaki_paydaslar_ve_alacakları
+
+									return sonuc_of_here
+
+
+							elif varsa_baba_canlı_alt_soy_listesi == []:
+
+								if mirascının_partneri_lst != []:
+
+									if mirascının_partneri_lst[-1] == "not dead": 
+
+										return[(mirascının_partneri_lst[0], miras_para/2),(mommy[0], miras_para/2)]
+
+								if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":	
+
+									return[(mommy[0], miras_para)]
+
+
+
+					elif "not dead" not in anne_baba_canlılıgı:
+
+						anne_ya_da_baba_alt_soy_var_mı = []
+
+						olmus_annenin_alt_soyu_var_mı = canlı_alt_soy_var_mi(mirascının_annesi, aile)
+
+						olmus_babanın_alt_soyu_var_mı = canlı_alt_soy_var_mi(mirascının_babası, aile)
+
+						anne_ya_da_baba_alt_soy_var_mı += olmus_babanın_alt_soyu_var_mı
+
+						anne_ya_da_baba_alt_soy_var_mı += olmus_annenin_alt_soyu_var_mı
+
+						if anne_ya_da_baba_alt_soy_var_mı != []:
+
+							#PG2 UYgulanacak
+
+							if mirascının_partneri_lst != []:
+
+								if mirascının_partneri_lst[-1] == "not dead":
+
+									anne_tarafından_alacaklılar = []
+
+									baba_tarafından_alacaklılar = []
+								
+									if olmus_annenin_alt_soyu_var_mı != []:
+
+										anne_tarafından_alacaklılar = olmus_annenin_alt_soyu_var_mı
+
+									if olmus_babanın_alt_soyu_var_mı != []:
+
+										baba_tarafından_alacaklılar = olmus_babanın_alt_soyu_var_mı
+
+									if anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar != []:
+									
+										buranın_sonucu = []
+
+										buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/4)
+
+										buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/4)
+
+										buranın_sonucu += [(mirascının_partneri, miras_para/2)]
+
+										return buranın_sonucu			
+
+									elif anne_tarafından_alacaklılar == [] and baba_tarafından_alacaklılar != []:
+
+										buranın_sonucu = []
+
+										buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/2)
+
+										buranın_sonucu += [(mirascının_partneri, miras_para/2)]
+
+										return buranın_sonucu
+
+									elif anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar == []:
+
+										buranın_sonucu = []
+
+										buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/2)
+
+										buranın_sonucu += [(mirascının_partneri, miras_para/2)]
+
+										return buranın_sonucu
+								
+							if mirascının_partneri_lst == [] or mirascının_partneri_lst[-1] == "DEPARTED":
+
+								anne_tarafından_alacaklılar = []
+
+								baba_tarafından_alacaklılar = []
+							
+								if olmus_annenin_alt_soyu_var_mı != []:
+
+									anne_tarafından_alacaklılar = olmus_annenin_alt_soyu_var_mı
+
+								if olmus_babanın_alt_soyu_var_mı != []:
+
+									baba_tarafından_alacaklılar = olmus_babanın_alt_soyu_var_mı
+
+								if anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar != []:
+								
+									buranın_sonucu = []
+
+									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para/2)
+
+									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para/2)
+
+									return buranın_sonucu			
+
+								elif anne_tarafından_alacaklılar == [] and baba_tarafından_alacaklılar != []:
+
+									buranın_sonucu = []
+
+									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_babası, aile, miras_para)
+
+									return buranın_sonucu
+
+								elif anne_tarafından_alacaklılar != [] and baba_tarafından_alacaklılar == []:
+
+									buranın_sonucu = []
+
+									buranın_sonucu += partnere_para_vermeyen_pg1(mirascının_annesi, aile, miras_para)
+
+									return buranın_sonucu	
+
+
+						elif anne_ya_da_baba_alt_soy_var_mı == []:
+							
+							#PG3 uygulanacak	 
+
+							birlestirilmis_grand_parents = mirascının_baba_tarafından_dedesi_lst + mirascının_baba_tarafından_babaannesi_lst + mirascının_anne_tarafından_dedesi_lst +mirascının_anne_tarafından_anaannesi_lst
+
+							partner_hayatta_mı = []
+
+							for insan in aile:
+
+								if insan[0] == mirascının_partneri:
+
+									if "not dead" in insan:
+
+										partner_hayatta_mı.append(insan[0])
+
+									elif "DEPARTED" in insan:
+
+										pass
+
+							if partner_hayatta_mı != []:
+							
+								#partner hayattadır
+
+								partner_hayatta_mı[0] = (mirascının_partneri, miras_para*(3/4))
+
+								miras_para = (1/4)*miras_para
+
+							elif partner_hayatta_mı == []:
+							
+								pass
+
+							canlı_grandparents = []
+							
+							cansız_fakat_alt_soylu_grandparents = []
+
+							for grandp in birlestirilmis_grand_parents:
+
+								if "not dead" in grandp:
+
+									canlı_grandparents.append(grandp[0]) #grandp yi mi yoksa grandp[0] yu mu koysam emin değilim buraya çok dikkat 
+
+								elif "DEPARTED" in grandp:
+								
+									varsa_grandparentın_canlı_alt_soy_listesi = canlı_alt_soy_var_mi(grandp[0], aile)
+
+									if varsa_grandparentın_canlı_alt_soy_listesi != []:
+
+										cansız_fakat_alt_soylu_grandparents.append(grandp[0])
+
+									elif varsa_grandparentın_canlı_alt_soy_listesi == []:
+									
+										pass
+
+							birlesmis_mirasci_granparents = canlı_grandparents + cansız_fakat_alt_soylu_grandparents
+
+							granparentsda_temporary_mirası_paylasacak_kisi_sayısı = len(birlesmis_mirasci_granparents)
+
+							granparents_ıcın_kisi_bası_dusen_pay = miras_para/granparentsda_temporary_mirası_paylasacak_kisi_sayısı
+
+							temporary_result_grandp = []
+
+							for miras_adayı in canlı_grandparents:
+
+								temp_val = (miras_adayı, granparents_ıcın_kisi_bası_dusen_pay)
+
+								temporary_result_grandp.append(temp_val)
+
+							empty_lst = []
+							
+							for olmus_miras_adayı in cansız_fakat_alt_soylu_grandparents:
+
+								empty_lst = empty_lst + partnere_para_vermeyen_pg1(olmus_miras_adayı, aile, granparents_ıcın_kisi_bası_dusen_pay)
+
+							burda_result = empty_lst + temporary_result_grandp
+
+							if partner_hayatta_mı != []:
+
+								artık_son_result = partner_hayatta_mı + burda_result
+
+								return artık_son_result
+
+							elif partner_hayatta_mı == []:
+							
+								return burda_result
+
+			elif varsa_canlı_alt_soy_listesi != []:
+
+				sonuc = pg1(person[0], aile, miras_para)
+
+				return sonuc
+
