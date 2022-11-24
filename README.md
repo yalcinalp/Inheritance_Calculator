@@ -1,4 +1,4 @@
 # Inheritance_Calculator
 <br />Automated Legacy Calculator Under Turkish Inheritance Law
 <br />Considering many different inheritance cases
-<br />You can review the cases and rules in THE4.pdf file 
+<br />You can review the cases and rules in Implementation Details.pdf file 
