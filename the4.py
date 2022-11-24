@@ -1,4 +1,34 @@
 
+def inheritance(lst):
+
+	might_have_duplicate = inheritance_help(lst)
+	stack = []
+	just_isimler = []
+
+	for kisi in might_have_duplicate:
+
+		if stack == []:
+			stack.append(kisi)
+			just_isimler.append(kisi[0])
+
+		else:
+
+			if kisi[0] in just_isimler:
+				for i in range(len(stack)):
+					if stack[i][0] == kisi[0]:
+
+						lst_hal = [stack[i][0], stack[i][1]]
+						lst_hal[1] = stack[i][1] + kisi[1]
+						stack[i] = (stack[i][0], lst_hal[1])
+
+			else:
+
+				stack.append(kisi)
+				just_isimler.append(kisi[0])
+	
+	return stack	
+
+
 def pg1(olen_birey, lst, rakam):
 
 	for kisi in lst:
@@ -441,38 +471,6 @@ def helper_aile_olusturucu(lst):
 			pass
 			
 	return(aile_olacak_list)
-
-
-def inheritance(lst):
-
-	might_have_duplicate = inheritance_help(lst)
-	stack = []
-	just_isimler = []
-
-	for kisi in might_have_duplicate:
-
-		if stack == []:
-			stack.append(kisi)
-			just_isimler.append(kisi[0])
-
-		else:
-
-			if kisi[0] in just_isimler:
-				for i in range(len(stack)):
-					if stack[i][0] == kisi[0]:
-
-						lst_hal = [stack[i][0], stack[i][1]]
-						lst_hal[1] = stack[i][1] + kisi[1]
-						stack[i] = (stack[i][0], lst_hal[1])
-
-			else:
-
-				stack.append(kisi)
-				just_isimler.append(kisi[0])
-	
-	return stack	
-
-
 
 def inheritance_help(liste):
 
