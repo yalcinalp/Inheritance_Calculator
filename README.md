@@ -13,9 +13,11 @@
 
 ![image](https://github.com/yalcinalp/Inheritance_Calculator/assets/95969634/184630a7-c30c-4d10-a0c4-e75650df4bb3)
 
-# SAMPLE RUN
-We will use the tree in Figure 2 for the sample run.
->>> Descriptions = [
+# SAMPLE RUN  
+We will use the tree in Figure 2 for the sample run. 
+ 
+```
+Descriptions = [
 "CHILD jale giray kaan",
 "CHILD faika enes giray",
 "CHILD banu ali enes",
@@ -43,3 +45,4 @@ We will use the tree in Figure 2 for the sample run.
 >>> inheritance(Example3)
 [(’jale’, 360.0), (’dilek’, 30.0), (’celil’, 30.0), (’banu’, 30.0),
 (’halil’, 15.0), (’ismet’, 7.5), (’lutfi’, 7.5)]
+```
