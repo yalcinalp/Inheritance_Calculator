@@ -35,14 +35,20 @@ Descriptions = [
 "DEPARTED giray",
 "DEPARTED kaan"
 ]
+
 >>> Example1 = Descriptions + ["DECEASED mert 100"] # First PG
 >>> inheritance(Example1)
+
 [(’ismet’, 50.0), (’lutfi’, 50.0)]
+
 >>> Example2 = Descriptions + ["DECEASED enes 120"] # Second PG
 >>> inheritance(Example2)
+
 [(’banu’, 60.0), (’halil’, 30.0), (’ismet’, 15.0), (’lutfi’, 15.0)]
+
 >>> Example3 = Descriptions + ["DECEASED giray 480"] # Third PG
 >>> inheritance(Example3)
+
 [(’jale’, 360.0), (’dilek’, 30.0), (’celil’, 30.0), (’banu’, 30.0),
 (’halil’, 15.0), (’ismet’, 7.5), (’lutfi’, 7.5)]
 ```
